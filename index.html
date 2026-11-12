@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ᴍᴇᴍʙᴇʀɪꜰʏ — ᴀᴜᴛʜ ᴘᴏʀᴛᴀʟ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #060913;
+      --bg-secondary: #0A0F1F;
+      --surface-glass: rgba(18, 25, 42, 0.45);
+      --accent-primary: #a9c9ff;
+      --accent-secondary: #c5dcff;
+      --accent-tertiary: #e1edff;
+      --accent-gold: #FBBF24;
+      --success: #10B981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #F59E0B;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --danger: #EF4444;
+      --text-primary: #FFFFFF;
+      --text-secondary: #E2E8F0;
+      --text-muted: #7B8FA8;
+      --border-subtle: rgba(169, 201, 255, 0.15);
+      --border-glow: rgba(169, 201, 255, 0.35);
+      --glow-primary: 0 0 30px rgba(169, 201, 255, 0.25);
+      --glow-success: 0 0 24px rgba(16, 185, 129, 0.35);
+    }
+
+    html, body {
+      overflow-x: hidden;
+      background: var(--bg-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* Sfondo a schermo intero */
+    .cyber-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 20% 25%, rgba(169, 201, 255, 0.14) 0%, transparent 50%),
+        radial-gradient(circle at 80% 75%, rgba(197, 220, 255, 0.09) 0%, transparent 50%),
+        linear-gradient(160deg, #050811 0%, #0A0F1F 50%, #080D1A 100%);
+    }
+
+    #particle-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 45%, rgba(3, 5, 12, 0.75) 100%);
+    }
+
+    /* Layout Full-Screen senza card contenitore */
+    .fullscreen-wrapper {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 36px 48px;
+    }
+
+    /* Top Bar minimal fluttuante */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      animation: fadeDown 0.7s ease forwards;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(169, 201, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-primary);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: url(#iconGrad);
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 20%, var(--accent-primary) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.8px;
+      font-variant: small-caps;
+      line-height: 1.1;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      font-variant: small-caps;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-primary);
+      font-variant: small-caps;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    /* Corpo centrale libero senza riquadro */
+    .hero-center {
+      width: 100%;
+      max-width: 620px;
+      margin: 40px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .stagger-1 { animation: fadeUp 0.6s ease 0.1s both; }
+    .stagger-2 { animation: fadeUp 0.6s ease 0.2s both; }
+    .stagger-3 { animation: fadeUp 0.6s ease 0.3s both; }
+    .stagger-4 { animation: fadeUp 0.6s ease 0.4s both; }
+    .stagger-5 { animation: fadeUp 0.6s ease 0.5s both; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--success-bg);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      border-radius: 99px;
+      margin-bottom: 22px;
+    }
+
+    .success-pill svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--success);
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .success-pill span {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--success);
+      font-variant: small-caps;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-title {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #FFFFFF 15%, var(--accent-primary) 65%, var(--accent-tertiary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-variant: small-caps;
+      filter: drop-shadow(0 0 20px rgba(169, 201, 255, 0.2));
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-variant: small-caps;
+      opacity: 0.85;
+    }
+
+    .timer-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--warning-bg);
+      backdrop-filter: blur(10px);
+      padding: 8px 18px;
+      border-radius: 99px;
+      margin-bottom: 32px;
+    }
+
+    .timer-row svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--warning);
+      fill: none;
+      stroke-width: 2.2;
+    }
+
+    .timer-row span {
+      font-size: 13px;
+      color: var(--warning);
+      font-weight: 600;
+      font-variant: small-caps;
+    }
+
+    #countdown {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #FBBF24;
+    }
+
+    /* Campo codice fluttuante */
+    .code-container {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .code-field {
+      width: 100%;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), var(--glow-primary);
+      transition: all 0.25s ease;
+    }
+
+    .code-field:hover, .code-field:focus-within {
+      box-shadow: 0 25px 55px rgba(0, 0, 0, 0.65), 0 0 35px rgba(169, 201, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .c-pre {
+      padding: 0 22px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      background: rgba(169, 201, 255, 0.08);
+    }
+
+    .c-pre svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent-primary);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    #codeDisplay {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 0 20px;
+      height: 68px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      letter-spacing: 1.5px;
+      text-align: center;
+    }
+
+    /* Pulsanti azione */
+    .btn-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      font-variant: small-caps;
+    }
+
+    .btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.3;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .btn-p {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+      color: #060913;
+      box-shadow: 0 10px 28px rgba(169, 201, 255, 0.3);
+    }
+
+    .btn-p:hover {
+      box-shadow: 0 14px 36px rgba(169, 201, 255, 0.5);
+    }
+
+    .btn-p.copied {
+      background: linear-gradient(135deg, var(--success), #059669);
+      color: #ffffff;
+      box-shadow: var(--glow-success);
+    }
+
+    .btn-s {
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      color: var(--text-secondary);
+    }
+
+    .btn-s:hover {
+      color: #ffffff;
+      background: rgba(169, 201, 255, 0.14);
+    }
+
+    /* Step minimal orizzontali/puliti */
+    .steps-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      text-align: left;
+    }
+
+    .step-item {
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      padding: 18px;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .step-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .sn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .step-item span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      font-variant: small-caps;
+    }
+
+    .step-item code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent-primary);
+      background: rgba(169, 201, 255, 0.12);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* Footer minimal a schermo intero */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-variant: small-caps;
+    }
+
+    .bottom-stats {
+      display: flex;
+      gap: 20px;
+    }
+
+    .bottom-stats strong {
+      color: var(--accent-primary);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: rgba(18, 25, 42, 0.92);
+      border-radius: 99px;
+      padding: 13px 26px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      z-index: 999;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), var(--glow-primary);
+      backdrop-filter: blur(12px);
+      font-variant: small-caps;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #toast svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--accent-primary);
+      fill: none;
+      stroke-width: 2.5;
+    }
+
+    @media(max-width: 768px) {
+      .fullscreen-wrapper { padding: 24px 20px; }
+      .hero-title { font-size: 30px; }
+      .btn-row { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .bottom-bar { flex-direction: column; gap: 10px; text-align: center; }
+      #codeDisplay { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a9c9ff" />
+        <stop offset="100%" stop-color="#ffffff" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="cyber-bg"></div>
+  <canvas id="particle-canvas"></canvas>
+  <div class="vignette"></div>
+
+  <div id="toast">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-msg">ᴄᴏᴘɪᴀᴛᴏ!</span>
+  </div>
+
+  <div class="fullscreen-wrapper">
+    <!-- Header libero -->
+    <header class="top-bar">
+      <div class="brand-row">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">ᴍᴇᴍʙᴇʀɪꜰʏ</div>
+          <div class="brand-sub">// ᴀᴜᴛʜᴇɴᴛɪᴄᴀᴛɪᴏɴ ᴘᴏʀᴛᴀʟ</div>
+        </div>
+      </div>
+
+      <div class="status-pill">
+        <div class="live-dot"></div>
+        <span>ꜱʏꜱᴛᴇᴍ ᴏɴʟɪɴᴇ</span>
+      </div>
+    </header>
+
+    <!-- Contenuto centrale senza bordi -->
+    <main class="hero-center">
+      <div class="success-pill stagger-1">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+        <span>✓ ᴀᴜᴛʜᴏʀɪᴢᴀᴛɪᴏɴ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟ</span>
+      </div>
+
+      <h1 class="hero-title stagger-2">ʏᴏᴜʀ ᴅɪꜱᴄᴏʀᴅ ᴀᴄᴄᴏᴜɴᴛ ʜᴀꜱ ʙᴇᴇɴ ʟɪɴᴋᴇᴅ</h1>
+      <p class="hero-desc stagger-2">ᴄᴏᴘʏ ʏᴏᴜʀ ᴘᴇʀꜱᴏɴᴀʟ ᴀᴜᴛʜᴏʀɪᴢᴀᴛɪᴏɴ ᴄᴏᴅᴇ ʙᴇʟᴏᴡ ᴛᴏ ᴄᴏᴍᴘʟᴇᴛᴇ ᴠᴇʀɪꜰɪᴄᴀᴛɪᴏɴ.</p>
+
+      <div class="timer-row stagger-3">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+        </svg>
+        <span>ᴛᴏᴋᴇɴ ᴇxᴘɪʀᴇꜱ ɪɴ <span id="countdown">10:00</span></span>
+      </div>
+
+      <div class="code-container stagger-4">
+        <div class="code-field">
+          <div class="c-pre">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <input type="text" id="codeDisplay" readonly spellcheck="false" placeholder="ʟᴏᴀᴅɪɴɢ...">
+        </div>
+      </div>
+
+      <div class="btn-row stagger-4">
+        <button class="btn btn-p" onclick="copyCode()" id="copyBtn">
+          <svg viewBox="0 0 24 24">
+            <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span id="copyText">ᴄᴏᴘʏ ᴄᴏᴅᴇ</span>
+        </button>
+        <a href="https://discord.com" class="btn btn-s"> 
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7" /></svg> ʀᴇᴛᴜʀɴ ᴛᴏ ᴅɪꜱᴄᴏʀᴅ 
+        </a>
+      </div>
+
+      <div class="steps-grid stagger-5">
+        <div class="step-item">
+          <div class="sn">01 // ᴄᴏᴘʏ</div>
+          <span>ᴄᴏᴘʏ ʏᴏᴜʀ ᴀᴜᴛʜᴏʀɪᴢᴀᴛɪᴏɴ ᴄᴏᴅᴇ ᴀʙᴏᴠᴇ.</span>
+        </div>
+        <div class="step-item">
+          <div class="sn">02 // ᴠᴇʀɪꜰʏ</div>
+          <span>ɢᴏ ʙᴀᴄᴋ ᴛᴏ ᴅɪꜱᴄᴏʀᴅ ᴀɴᴅ ᴜꜱᴇ ᴄᴏᴍᴍᴀɴᴅ: <code>!auth [code]</code></span>
+        </div>
+        <div class="step-item">
+          <div class="sn">03 // ᴅᴏɴᴇ</div>
+          <span>ᴀᴄᴄᴇꜱꜱ ɢʀᴀɴᴛᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ! 🚀</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer libero -->
+    <footer class="bottom-bar">
+      <div class="bottom-stats">
+        <span>ꜱᴇᴄᴜʀᴇ · ᴇɴᴄʀʏᴘᴛᴇᴅ</span>
+      </div>
+      <div>ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴍᴇᴍʙᴇʀɪꜰʏ</div>
+    </footer>
+  </div>
+
+  <script>
+    // Particelle interattive a schermo intero
+    (function initParticles() {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let width, height, particles;
+      const mouse = { x: null, y: null, radius: 140 };
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+
+      window.addEventListener('mouseout', () => {
+        mouse.x = null;
+        mouse.y = null;
+      });
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createParticles();
+      }
+
+      function createParticles() {
+        const count = Math.min(Math.floor((width * height) / 14000), 90);
+        particles = [];
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.55,
+            vy: (Math.random() - 0.5) * 0.55,
+            size: Math.random() * 2 + 1,
+            alpha: Math.random() * 0.45 + 0.25
+          });
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > width) p.vx *= -1;
+          if (p.y < 0 || p.y > height) p.vy *= -1;
+
+          if (mouse.x !== null && mouse.y !== null) {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < mouse.radius) {
+              const force = (mouse.radius - dist) / mouse.radius;
+              p.x -= (dx / dist) * force * 1.6;
+              p.y -= (dy / dist) * force * 1.6;
+
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(169, 201, 255, ${0.32 * force})`;
+              ctx.lineWidth = 0.9;
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.stroke();
+            }
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(169, 201, 255, ${p.alpha})`;
+          ctx.fill();
+
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dx = p.x - p2.x;
+            const dy = p.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 125) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(169, 201, 255, ${0.14 * (1 - dist / 125)})`;
+              ctx.lineWidth = 0.7;
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      animate();
+    })();
+
+    // Countdown timer (10 minuti)
+    (function() {
+      let t = 600;
+      const el = document.getElementById('countdown');
+      if (!el) return;
+      setInterval(() => {
+        if (--t <= 0) { el.textContent = 'ᴇxᴘɪʀᴇᴅ'; return; }
+        el.textContent = `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+      }, 1000);
+    })();
+
+    // Gestione parametro URL ?code=...
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(location.search);
+      const code = urlParams.get('code');
+      const inp = document.getElementById('codeDisplay');
+      if (!inp) return;
+
+      if (code) {
+        inp.value = code;
+        setTimeout(() => {
+          navigator.clipboard.writeText(code).then(() => {
+            document.getElementById('copyText').textContent = 'ᴀᴜᴛᴏ-ᴄᴏᴘɪᴇᴅ!';
+            document.getElementById('copyBtn').classList.add('copied');
+            toast('ᴄᴏᴅɪᴄᴇ ᴄᴏᴘɪᴀᴛᴏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀᴍᴇɴᴛᴇ!');
+            setTimeout(() => {
+              document.getElementById('copyText').textContent = 'ᴄᴏᴘʏ ᴄᴏᴅᴇ';
+              document.getElementById('copyBtn').classList.remove('copied');
+            }, 2000);
+          }).catch(() => {});
+        }, 400);
+      } else {
+        inp.value = 'ɴᴏ ᴄᴏᴅᴇ ꜰᴏᴜɴᴅ';
+        inp.style.color = 'var(--danger)';
+      }
+    });
+
+    // Funzione Copia
+    function copyCode() {
+      const code = document.getElementById('codeDisplay').value;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('copyText').textContent = 'ᴄᴏᴘɪᴇᴅ!';
+        document.getElementById('copyBtn').classList.add('copied');
+        toast('ᴄᴏᴅɪᴄᴇ ᴄᴏᴘɪᴀᴛᴏ!');
+        setTimeout(() => {
+          document.getElementById('copyText').textContent = 'ᴄᴏᴘʏ ᴄᴏᴅᴇ';
+          document.getElementById('copyBtn').classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Toast
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    window.copyCode = copyCode;
+  </script>
+</body>
+</html>
